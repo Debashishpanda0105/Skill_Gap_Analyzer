@@ -55,7 +55,7 @@ Skill_Gap_Analysis_App/
 🌐 Live Demo
 
 👉 Open Live App
- (Replace with your actual link after deployment)
+ ([Link](https://skillgapanalyzer-evfne39mcm6lxhnalx3x25.streamlit.app/))
 
  ---
 ## 👨‍💻 Developer
