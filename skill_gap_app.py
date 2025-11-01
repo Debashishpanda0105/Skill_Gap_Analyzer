@@ -178,22 +178,53 @@ def main():
     st.title("🎓 AI-Powered Skill Gap Analyzer")
     st.write("Enter your details to predict your skill gap, get learning resources, and see a visual analysis.")
 
-    file_path = r'C:\Users\debup\OneDrive\Desktop\skill_gap_project\Dataset\Final_Updated_DMA_DATASET_Indian_Names.xlsx'
-    df = load_and_preprocess_data(file_path)
-    if df is None:
-        return
-        
+    # Sidebar dataset uploader (cloud-friendly)
+    st.sidebar.header("Dataset")
+    uploaded_file = st.sidebar.file_uploader("Upload dataset (Excel .xlsx)", type=["xlsx", "xls"])
+
+    # possible paths (local + repo)
+    possible_paths = [
+        r"C:\Users\debup\OneDrive\Desktop\skill_gap_project\Dataset\Final_Updated_DMA_DATASET_Indian_Names.xlsx",
+        os.path.join("Dataset", "Final_Updated_DMA_DATASET_Indian_Names.xlsx"),
+        "Final_Updated_DMA_DATASET_Indian_Names.xlsx"
+    ]
+
+    df = None
+    if uploaded_file is not None:
+        try:
+            df = pd.read_excel(uploaded_file)
+            st.sidebar.success("Uploaded dataset loaded.")
+        except Exception as e:
+            st.sidebar.error(f"Could not read uploaded Excel file: {e}")
+            return
+    else:
+        for p in possible_paths:
+            if os.path.exists(p):
+                try:
+                    df = load_and_preprocess_data(p)
+                    if df is None:
+                        st.sidebar.error("Preprocessing failed for dataset.")
+                        return
+                    st.sidebar.info(f"Loaded dataset from {p}")
+                    break
+                except Exception as e:
+                    st.sidebar.error(f"Failed to load dataset from {p}: {e}")
+        if df is None:
+            st.sidebar.info("No dataset found. Please upload the Excel file in the sidebar to proceed.")
+            return
+
+    # At this point df is loaded and preprocessed
     model, one_hot, mlb, X_columns = train_model(df)
 
-    # --- Sidebar for User Input ---
+    # --- Sidebar for user input ---
     st.sidebar.header("👤 Enter Your Details")
     job_aspiration = st.sidebar.selectbox("Aspired Job Role", options=list(JOB_SKILL_REQUIREMENTS.keys()))
-    
+
     course_options = sorted(list(df['current_course'].unique()) + ['MCA'])
     course = st.sidebar.selectbox("Current Course", options=course_options)
-    
+
     year = st.sidebar.selectbox("Year of Study", options=sorted(df['year'].unique()))
-    
+
     # NEW: Multi-select for skills
     user_skills_list = st.sidebar.multiselect("Select Your Skills", options=ALL_SKILLS_LIST, default=["Python", "SQL", "Communication"])
 
